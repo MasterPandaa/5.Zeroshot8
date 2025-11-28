@@ -1,6 +1,7 @@
-import sys
 import math
 import random
+import sys
+
 import pygame
 
 # ============================
@@ -27,23 +28,24 @@ FPS = 60
 
 # Unicode mapping untuk catur
 UNICODE_PIECES = {
-    ('w', 'K'): '\u2654',
-    ('w', 'Q'): '\u2655',
-    ('w', 'R'): '\u2656',
-    ('w', 'B'): '\u2657',
-    ('w', 'N'): '\u2658',
-    ('w', 'P'): '\u2659',
-    ('b', 'K'): '\u265A',
-    ('b', 'Q'): '\u265B',
-    ('b', 'R'): '\u265C',
-    ('b', 'B'): '\u265D',
-    ('b', 'N'): '\u265E',
-    ('b', 'P'): '\u265F',
+    ("w", "K"): "\u2654",
+    ("w", "Q"): "\u2655",
+    ("w", "R"): "\u2656",
+    ("w", "B"): "\u2657",
+    ("w", "N"): "\u2658",
+    ("w", "P"): "\u2659",
+    ("b", "K"): "\u265a",
+    ("b", "Q"): "\u265b",
+    ("b", "R"): "\u265c",
+    ("b", "B"): "\u265d",
+    ("b", "N"): "\u265e",
+    ("b", "P"): "\u265f",
 }
 
 # ============================
 # Utilitas Board
 # ============================
+
 
 def initial_board():
     # Representasi: None atau tuple (color, type)
@@ -51,15 +53,15 @@ def initial_board():
     board = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
 
     # Hitam
-    back_rank = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+    back_rank = ["R", "N", "B", "Q", "K", "B", "N", "R"]
     for c in range(BOARD_SIZE):
-        board[0][c] = ('b', back_rank[c])
-        board[1][c] = ('b', 'P')
+        board[0][c] = ("b", back_rank[c])
+        board[1][c] = ("b", "P")
 
     # Putih
     for c in range(BOARD_SIZE):
-        board[6][c] = ('w', 'P')
-        board[7][c] = ('w', back_rank[c])
+        board[6][c] = ("w", "P")
+        board[7][c] = ("w", back_rank[c])
 
     return board
 
@@ -76,10 +78,11 @@ def clone_board(board):
 # Gerak Bidak (Pseudolegal)
 # ============================
 
+
 def gen_pawn_moves(board, r, c, color):
     moves = []
-    dir_ = -1 if color == 'w' else 1
-    start_row = 6 if color == 'w' else 1
+    dir_ = -1 if color == "w" else 1
+    start_row = 6 if color == "w" else 1
     # Maju 1
     nr = r + dir_
     if in_bounds(nr, c) and board[nr][c] is None:
@@ -92,7 +95,11 @@ def gen_pawn_moves(board, r, c, color):
     for dc in (-1, 1):
         nc = c + dc
         nr = r + dir_
-        if in_bounds(nr, nc) and board[nr][nc] is not None and board[nr][nc][0] != color:
+        if (
+            in_bounds(nr, nc)
+            and board[nr][nc] is not None
+            and board[nr][nc][0] != color
+        ):
             moves.append((nr, nc))
     # (Tidak implement en passant untuk kesederhanaan)
     return moves
@@ -137,10 +144,7 @@ def gen_rook_moves(board, r, c, color):
 
 
 def gen_queen_moves(board, r, c, color):
-    dirs = [
-        (-1, -1), (-1, 1), (1, -1), (1, 1),
-        (-1, 0), (1, 0), (0, -1), (0, 1)
-    ]
+    dirs = [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (1, 0), (0, -1), (0, 1)]
     return gen_sliding_moves(board, r, c, color, dirs)
 
 
@@ -164,17 +168,17 @@ def gen_pseudolegal_moves_for_piece(board, r, c):
     if piece is None:
         return []
     color, kind = piece
-    if kind == 'P':
+    if kind == "P":
         return gen_pawn_moves(board, r, c, color)
-    if kind == 'N':
+    if kind == "N":
         return gen_knight_moves(board, r, c, color)
-    if kind == 'B':
+    if kind == "B":
         return gen_bishop_moves(board, r, c, color)
-    if kind == 'R':
+    if kind == "R":
         return gen_rook_moves(board, r, c, color)
-    if kind == 'Q':
+    if kind == "Q":
         return gen_queen_moves(board, r, c, color)
-    if kind == 'K':
+    if kind == "K":
         return gen_king_moves(board, r, c, color)
     return []
 
@@ -183,11 +187,12 @@ def gen_pseudolegal_moves_for_piece(board, r, c):
 # Validasi Check & Legal Moves
 # ============================
 
+
 def find_king(board, color):
     for r in range(BOARD_SIZE):
         for c in range(BOARD_SIZE):
             v = board[r][c]
-            if v is not None and v[0] == color and v[1] == 'K':
+            if v is not None and v[0] == color and v[1] == "K":
                 return (r, c)
     return None
 
@@ -202,22 +207,22 @@ def squares_attacked_by(board, attacker_color):
                 continue
             color, kind = v
             moves = []
-            if kind == 'P':
-                dir_ = -1 if color == 'w' else 1
+            if kind == "P":
+                dir_ = -1 if color == "w" else 1
                 for dc in (-1, 1):
                     nr, nc = r + dir_, c + dc
                     if in_bounds(nr, nc):
                         attacked.add((nr, nc))
                 continue
-            elif kind == 'N':
+            elif kind == "N":
                 moves = gen_knight_moves(board, r, c, color)
-            elif kind == 'B':
+            elif kind == "B":
                 moves = gen_bishop_moves(board, r, c, color)
-            elif kind == 'R':
+            elif kind == "R":
                 moves = gen_rook_moves(board, r, c, color)
-            elif kind == 'Q':
+            elif kind == "Q":
                 moves = gen_queen_moves(board, r, c, color)
-            elif kind == 'K':
+            elif kind == "K":
                 # Raja menyerang sekitar 1 petak
                 for dr in (-1, 0, 1):
                     for dc in (-1, 0, 1):
@@ -236,7 +241,7 @@ def in_check(board, color):
     kr, kc = find_king(board, color)
     if kr is None:
         return False
-    attacker = 'b' if color == 'w' else 'w'
+    attacker = "b" if color == "w" else "w"
     attacked = squares_attacked_by(board, attacker)
     return (kr, kc) in attacked
 
@@ -248,8 +253,8 @@ def apply_move(board, from_sq, to_sq):
     new_board = clone_board(board)
     new_board[r1][c1] = None
     # Promosi pion otomatis menjadi Queen
-    if piece[1] == 'P' and (r2 == 0 or r2 == BOARD_SIZE - 1):
-        new_board[r2][c2] = (piece[0], 'Q')
+    if piece[1] == "P" and (r2 == 0 or r2 == BOARD_SIZE - 1):
+        new_board[r2][c2] = (piece[0], "Q")
     else:
         new_board[r2][c2] = piece
     return new_board
@@ -262,7 +267,7 @@ def generate_legal_moves(board, color):
             v = board[r][c]
             if v is None or v[0] != color:
                 continue
-            for (nr, nc) in gen_pseudolegal_moves_for_piece(board, r, c):
+            for nr, nc in gen_pseudolegal_moves_for_piece(board, r, c):
                 nb = apply_move(board, (r, c), (nr, nc))
                 if not in_check(nb, color):
                     legal.append((r, c, nr, nc))
@@ -273,13 +278,14 @@ def generate_legal_moves(board, color):
 # Rendering
 # ============================
 
+
 def try_get_font(size):
     # Coba beberapa font yang umumnya punya glyph catur
     candidates = [
-        'Segoe UI Symbol',  # Windows
-        'DejaVu Sans',      # Linux/Many
-        'Arial Unicode MS', # Kadang ada
-        None                # Default font
+        "Segoe UI Symbol",  # Windows
+        "DejaVu Sans",  # Linux/Many
+        "Arial Unicode MS",  # Kadang ada
+        None,  # Default font
     ]
     for name in candidates:
         try:
@@ -305,17 +311,27 @@ def draw_board(surface, selected_square, legal_targets, board, check_state):
     for r in range(BOARD_SIZE):
         for c in range(BOARD_SIZE):
             color = LIGHT_COLOR if (r + c) % 2 == 0 else DARK_COLOR
-            rect = pygame.Rect(OFFSET_X + c * SQUARE_SIZE, OFFSET_Y + r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+            rect = pygame.Rect(
+                OFFSET_X + c * SQUARE_SIZE,
+                OFFSET_Y + r * SQUARE_SIZE,
+                SQUARE_SIZE,
+                SQUARE_SIZE,
+            )
             pygame.draw.rect(surface, color, rect)
 
     # Highlight selected
     if selected_square is not None:
         r, c = selected_square
-        rect = pygame.Rect(OFFSET_X + c * SQUARE_SIZE, OFFSET_Y + r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+        rect = pygame.Rect(
+            OFFSET_X + c * SQUARE_SIZE,
+            OFFSET_Y + r * SQUARE_SIZE,
+            SQUARE_SIZE,
+            SQUARE_SIZE,
+        )
         pygame.draw.rect(surface, SELECT_COLOR, rect, 4)
 
     # Highlight legal targets
-    for (tr, tc) in legal_targets:
+    for tr, tc in legal_targets:
         cx = OFFSET_X + tc * SQUARE_SIZE + SQUARE_SIZE // 2
         cy = OFFSET_Y + tr * SQUARE_SIZE + SQUARE_SIZE // 2
         radius = SQUARE_SIZE // 8
@@ -325,7 +341,12 @@ def draw_board(surface, selected_square, legal_targets, board, check_state):
     if check_state is not None:
         king_pos, color = check_state
         r, c = king_pos
-        rect = pygame.Rect(OFFSET_X + c * SQUARE_SIZE, OFFSET_Y + r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+        rect = pygame.Rect(
+            OFFSET_X + c * SQUARE_SIZE,
+            OFFSET_Y + r * SQUARE_SIZE,
+            SQUARE_SIZE,
+            SQUARE_SIZE,
+        )
         s = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE), pygame.SRCALPHA)
         s.fill((*CHECK_COLOR, 90))
         surface.blit(s, rect.topleft)
@@ -338,7 +359,12 @@ def draw_pieces(surface, board, piece_font):
             if v is None:
                 continue
             glyph = UNICODE_PIECES.get(v)
-            rect = pygame.Rect(OFFSET_X + c * SQUARE_SIZE, OFFSET_Y + r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+            rect = pygame.Rect(
+                OFFSET_X + c * SQUARE_SIZE,
+                OFFSET_Y + r * SQUARE_SIZE,
+                SQUARE_SIZE,
+                SQUARE_SIZE,
+            )
             if glyph is not None:
                 text = piece_font.render(glyph, True, (20, 20, 20))
                 text_rect = text.get_rect(center=rect.center)
@@ -346,7 +372,7 @@ def draw_pieces(surface, board, piece_font):
             else:
                 # Fallback: bentuk sederhana (lingkaran putih/hitam)
                 cx, cy = rect.center
-                col = (240, 240, 240) if v[0] == 'w' else (30, 30, 30)
+                col = (240, 240, 240) if v[0] == "w" else (30, 30, 30)
                 pygame.draw.circle(surface, col, (cx, cy), SQUARE_SIZE // 3)
 
 
@@ -363,6 +389,7 @@ def draw_status(surface, turn_color, is_check, result_text, ui_font):
 # ============================
 # AI Sederhana
 # ============================
+
 
 def ai_choose_move(board, color):
     # Pilih langkah legal acak; preferensi sederhana: ambil langkah yang menangkap jika ada
@@ -382,8 +409,12 @@ def ai_choose_move(board, color):
 # Game Loop & Input
 # ============================
 
+
 def board_from_pixel(px, py):
-    if not (OFFSET_X <= px < OFFSET_X + BOARD_PIXELS and OFFSET_Y <= py < OFFSET_Y + BOARD_PIXELS):
+    if not (
+        OFFSET_X <= px < OFFSET_X + BOARD_PIXELS
+        and OFFSET_Y <= py < OFFSET_Y + BOARD_PIXELS
+    ):
         return None
     c = (px - OFFSET_X) // SQUARE_SIZE
     r = (py - OFFSET_Y) // SQUARE_SIZE
@@ -400,11 +431,11 @@ def main():
     ui_font = try_get_font(28)
 
     board = initial_board()
-    turn = 'w'  # pemain putih
+    turn = "w"  # pemain putih
     selected = None
     legal_targets = []
     running = True
-    result_text = ''
+    result_text = ""
 
     while running:
         clock.tick(FPS)
@@ -425,11 +456,15 @@ def main():
                     running = False
                 if event.key == pygame.K_r:
                     board = initial_board()
-                    turn = 'w'
+                    turn = "w"
                     selected = None
                     legal_targets = []
-                    result_text = ''
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and result_text == '':
+                    result_text = ""
+            elif (
+                event.type == pygame.MOUSEBUTTONDOWN
+                and event.button == 1
+                and result_text == ""
+            ):
                 pos = pygame.mouse.get_pos()
                 sq = board_from_pixel(*pos)
                 if sq is None:
@@ -446,7 +481,7 @@ def main():
                             temp_moves = gen_pseudolegal_moves_for_piece(board, r, c)
                             # saring legal (tidak membuat raja sendiri ter-schak)
                             legal_targets = []
-                            for (nr, nc) in temp_moves:
+                            for nr, nc in temp_moves:
                                 nb = apply_move(board, (r, c), (nr, nc))
                                 if not in_check(nb, turn):
                                     legal_targets.append((nr, nc))
@@ -460,37 +495,39 @@ def main():
                             selected = None
                             legal_targets = []
                             # Cek akhir giliran: apakah lawan punya langkah?
-                            turn = 'b' if turn == 'w' else 'w'
+                            turn = "b" if turn == "w" else "w"
                             # Setelah pemain putih jalan, biarkan AI hitam bergerak otomatis
-                            if turn == 'b':
+                            if turn == "b":
                                 pygame.display.flip()  # render dulu agar terasa responsif
                                 pygame.event.pump()
                                 # AI bergerak
-                                ai_move = ai_choose_move(board, 'b')
+                                ai_move = ai_choose_move(board, "b")
                                 if ai_move is None:
                                     # Tidak ada langkah legal untuk hitam
-                                    if in_check(board, 'b'):
-                                        result_text = 'Skakmat! Putih menang.'
+                                    if in_check(board, "b"):
+                                        result_text = "Skakmat! Putih menang."
                                     else:
-                                        result_text = 'Stalemate! Seri.'
+                                        result_text = "Stalemate! Seri."
                                 else:
                                     r1, c1, r2, c2 = ai_move
                                     board = apply_move(board, (r1, c1), (r2, c2))
-                                    turn = 'w'
+                                    turn = "w"
                                     # Setelah AI bergerak, cek apakah putih punya langkah
-                                    white_legal = generate_legal_moves(board, 'w')
+                                    white_legal = generate_legal_moves(board, "w")
                                     if not white_legal:
-                                        if in_check(board, 'w'):
-                                            result_text = 'Skakmat! Hitam menang.'
+                                        if in_check(board, "w"):
+                                            result_text = "Skakmat! Hitam menang."
                                         else:
-                                            result_text = 'Stalemate! Seri.'
+                                            result_text = "Stalemate! Seri."
                         else:
                             # Re-seleksi jika klik bidak sendiri lagi
                             if v is not None and v[0] == turn:
                                 selected = (r, c)
-                                temp_moves = gen_pseudolegal_moves_for_piece(board, r, c)
+                                temp_moves = gen_pseudolegal_moves_for_piece(
+                                    board, r, c
+                                )
                                 legal_targets = []
-                                for (nr, nc) in temp_moves:
+                                for nr, nc in temp_moves:
                                     nb = apply_move(board, (r, c), (nr, nc))
                                     if not in_check(nb, turn):
                                         legal_targets.append((nr, nc))
@@ -499,20 +536,20 @@ def main():
                                 legal_targets = []
 
         # Cek kondisi akhir jika bukan saat giliran AI
-        if result_text == '':
+        if result_text == "":
             legal_now = generate_legal_moves(board, turn)
             if not legal_now:
                 if in_check(board, turn):
-                    if turn == 'w':
-                        result_text = 'Skakmat! Hitam menang.'
+                    if turn == "w":
+                        result_text = "Skakmat! Hitam menang."
                     else:
-                        result_text = 'Skakmat! Putih menang.'
+                        result_text = "Skakmat! Putih menang."
                 else:
-                    result_text = 'Stalemate! Seri.'
+                    result_text = "Stalemate! Seri."
 
         draw_board(screen, selected, legal_targets, board, check_state)
         draw_pieces(screen, board, piece_font)
-        draw_status(screen, turn, is_check and result_text == '', result_text, ui_font)
+        draw_status(screen, turn, is_check and result_text == "", result_text, ui_font)
 
         pygame.display.flip()
 
@@ -520,5 +557,5 @@ def main():
     sys.exit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
